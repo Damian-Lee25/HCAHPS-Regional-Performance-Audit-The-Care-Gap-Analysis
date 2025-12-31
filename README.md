@@ -13,20 +13,47 @@ Healthcare executives often struggle to answer a fundamental question: *Is low p
 
 ## 3. Technical Stack & Project Architecture
 
+This project utilizes an **Event-Driven Data Pipeline** to automate the flow of healthcare data from local ingestion to cloud-based analytics.
+
 ![Data Architecture Diagram](https://res.cloudinary.com/ducikqiyg/image/upload/v1767158527/data_flow_diagram_ag7vut.png)
-* **Cloud Data Warehouse:** Google BigQuery
-* **Data Transformation:** SQL (Views, Regex footnote parsing, Case Logic)
-* **Analysis Environment:** Python (Jupyter Notebooks)
-* **Libraries:** Pandas, Seaborn, Matplotlib, Google Cloud BigQuery
-* **Business Intelligence:** Looker Studio
+
+### **The Data Pipeline Flow:**
+1.  **Local Ingestion:** Processed raw healthcare data via **Python** in a Jupyter Notebook environment.
+2.  **Cloud Storage (GCS):** Automated the upload of cleaned CSVs to **Google Cloud Storage** buckets using the `google-cloud-storage` library.
+3.  **Event-Driven Automation:** Configured a **Google Cloud Run Function** to monitor the GCS bucket. 
+4.  **Auto-Load to BigQuery:** Every time a new file is uploaded, the Cloud Run Function is triggered, automatically extracting the file and loading it into a **BigQuery** staging table.
+5.  **Analytics Layer:** Final data transformation and "Reliability Gate" filtering performed in BigQuery for consumption in **Looker Studio** and **Seaborn**.
+
+### **Cloud Components:**
+* **Language:** Python (Pandas, GCS Client Library)
+* **Storage:** Google Cloud Storage (GCS)
+* **Compute:** Google Cloud Run Functions (Serverless trigger-based ingestion)
+* **Warehouse:** Google BigQuery
 
 ---
 
 ## 4. Methodology
-1. **Data Engineering (BigQuery):** Developed a SQL View to clean raw HCAHPS data. Used Regex to identify suppressed records and created a binary `is_reliable` flag based on reporting period length.
-2. **The Reliability Gate:** Filtered the dataset to ensure only "Full-Year" high-integrity records were used for benchmarking.
-3. **Statistical Visualization (Python):** Connected the BigQuery View to a Python environment to generate a variance heatmap, identifying the specific "Care Categories" with the highest volatility.
-4. **Executive Reporting (Looker Studio):** Designed a comparative dashboard to visualize the "Care Gap" for non-technical stakeholders.
+
+The project was executed in four distinct phases, moving from local data preparation to a fully automated cloud pipeline and executive-level visualization.
+
+### **Phase 1: Local Ingestion & Pre-Processing**
+* **Environment:** Developed a specialized **Python** script within a Jupyter Notebook to handle initial data cleaning.
+* **Cleaning Logic:** Standardized naming conventions, handled missing values, and prepared the CSV for cloud ingestion.
+* **Automation:** Integrated the `google-cloud-storage` library to automatically push the finalized dataset to a designated GCS bucket.
+
+### **Phase 2: Event-Driven Cloud Engineering**
+* **Trigger Mechanism:** Configured a **Google Cloud Run Function** to listen for `finalize/create` events in the Cloud Storage bucket.
+* **Serverless Extraction:** Upon file upload, the Cloud Run Function triggers automatically, extracting the CSV data and loading it into a staging table in **BigQuery**.
+* **Scalability:** This architecture ensures that any future HCAHPS data updates are ingested instantly without manual intervention.
+
+### **Phase 3: The SQL Reliability Gate**
+* **Advanced Transformation:** Built a BigQuery SQL View to parse complex footnotes using **Regex**.
+* **Feature Engineering:** Created the `is_reliable` flag to filter out "Short-Year" and suppressed records, narrowing the 30,949 raw records down to a high-integrity cohort of 28,499.
+* **Aggregation:** Mapped 10+ specific healthcare metrics into 6 high-level "Measure Groups" for cross-category benchmarking.
+
+### **Phase 4: Statistical Analysis & BI**
+* **Python Deep-Dive:** Connected the BigQuery View back to a Jupyter Notebook for variance analysis, producing the regional performance heatmap.
+* **Executive Dashboarding:** Developed a multi-page **Looker Studio** report to visualize the "Care Gap," specifically contrasting clinical benchmarks against environmental volatility.
 
 ---
 
