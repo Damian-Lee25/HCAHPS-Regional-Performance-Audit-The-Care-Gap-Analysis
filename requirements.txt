@@ -1,0 +1,10 @@
+google-cloud-bigquery
+google-cloud-bigquery-storage
+pandas
+numpy
+matplotlib
+seaborn
+os
+db-dtypes
+traceback
+sys
